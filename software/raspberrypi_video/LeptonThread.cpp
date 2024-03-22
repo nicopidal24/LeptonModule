@@ -12,6 +12,8 @@
 #define FRAME_SIZE_UINT16 (PACKET_SIZE_UINT16*PACKETS_PER_FRAME)
 #define FPS 27;
 
+int x = 0;
+
 LeptonThread::LeptonThread() : QThread()
 {
 	//
@@ -203,6 +205,11 @@ void LeptonThread::run()
 
 					//flip the MSB and LSB at the last second
 					uint16_t value = (shelf[iSegment - 1][i*2] << 8) + shelf[iSegment - 1][i*2+1];
+					if (x < 5) {
+						printf("%u\n",(unsigned int)value);
+						x++;
+					}
+					
 					if (value == 0) {
 						// Why this value is 0?
 						continue;
@@ -218,6 +225,31 @@ void LeptonThread::run()
 			diff = maxValue - minValue;
 			scale = 255/diff;
 		}
+
+		//Find radiometric data
+		//int roww, columnn;
+		//uint16_t val;
+
+		float radValue = 0;
+
+		radValue += (shelf[3 - 1][84*2] << 8) + shelf[3 - 1][84*2+1];
+		radValue += (shelf[3 - 1][81*2] << 8) + shelf[3 - 1][81*2+1];
+		radValue += (shelf[3 - 1][80*2] << 8) + shelf[3 - 1][80*2+1];
+		radValue += (shelf[2 - 1][4840*2] << 8) + shelf[2 - 1][4840*2+1];
+		radValue += (shelf[2 - 1][4837*2] << 8) + shelf[2 - 1][4837*2+1];
+		radValue += (shelf[2 - 1][4836*2] << 8) + shelf[2 - 1][4836*2+1];
+		radValue += (shelf[2 - 1][4676*2] << 8) + shelf[2 - 1][4676*2+1];
+		radValue += (shelf[2 - 1][4673*2] << 8) + shelf[2 - 1][4673*2+1];
+		radValue += (shelf[2 - 1][4672*2] << 8) + shelf[2 - 1][4672*2+1];
+
+
+		radValue = radValue / 9;
+		float tempK = radValue/100;
+		float tempC = tempK - 273.15;
+
+		QString s;
+		s.sprintf("%.2f C", tempC);
+		emit updateRadiometry(s);
 
 		int row, column;
 		uint16_t value;
@@ -260,10 +292,17 @@ void LeptonThread::run()
 			}
 		}
 
+		//Draw crosshairs
+		for(int j =0; j < 5; j++){
+			myImage.setPixel(myImageWidth/2-1, myImageHeight/2-3+j, 0);
+			myImage.setPixel(myImageWidth/2-3+j, myImageHeight/2-1, 0);
+		}
+
 		if (n_zero_value_drop_frame != 0) {
 			log_message(8, "[WARNING] Found zero-value. Drop the frame continuously " + std::to_string(n_zero_value_drop_frame) + " times [RECOVERED]");
 			n_zero_value_drop_frame = 0;
 		}
+
 
 		//lets emit the signal for update
 		emit updateImage(myImage);

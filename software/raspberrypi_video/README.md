@@ -5,9 +5,9 @@ First enable the SPI and I2C interfaces on the Pi.
 sudo raspi-config
 ```
 
-Install the 'qt4-dev-tools' package, which allows compiling of QT applications.
+Install the 'qtbase5-dev' package, which allows compiling of QT applications.
 ```
-sudo apt-get install qt4-dev-tools
+sudo apt-get install qtbase5-dev
 ```
 
 To build (will build any SDK dependencies as well, cd to the *LeptonModule/sofware/raspberrypi_video* folder, then run:
